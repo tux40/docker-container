@@ -1,0 +1,17 @@
+==
+We've created a special container which outputs a message and then exits with code 1 to simulate a crash.
+==
+$ docker run -d --name restart-default scrapbook/docker-restart-example J
+$ docker ps -a J 
+$ docker log restart-default J 
+==
+Restart on Fail
+==
+$ docker run -d --name restart-3 --restart=on-failure:3 scrapbook/docker-restart-example
+==
+$ docker logs restart-3 J
+==
+Use the always flag to automatically restart the container when is crashes for example 
+==
+$ docker run -d --name restart-always --restart=always scrapbook/docker-restart-example J
+$ docker logs restart-always J

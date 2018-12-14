@@ -1,0 +1,63 @@
+Create Dockerfile
+
+The Multi-Stage feature allows a single Dockerfile to contain multiple stages in order to produce the desired, optimised, Docker Image.
+
+Previously, the problem would have been solved with two Dockerfiles. One file would have the steps to build the binary and artifacts using a development container, the second would be optimised for production and not include the development tools.
+
+By removing development tooling in the production image, you reproduce the attack surface and improve the deployment time.
+Sample Code
+
+Start by deploying a sample Golang HTTP Server. This currently using a two staged Docker Build approach. This scenario will create a new Dockerfile that allows the image to be built using a single command.
+
+git clone https://github.com/katacoda/golang-http-server.git
+Multi-Stage Dockerfile
+
+Using the editor, create a Multi-Stage Dockerfile. The first stage using the Golang SDK to build a binary. The second stage copies the resulting binary into a optimised Docker Image.
+
+==
+Multi-Stage Dockerfile
+
+Using the editor, create a Multi-Stage Dockerfile. The first stage using the Golang SDK to build a binary. The second stage copies the resulting binary into a optimised Docker Image.
+==# First Stage
+FROM golang:1.6-alpine
+
+RUN mkdir /app
+ADD . /app/
+WORKDIR /app
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+# Second Stage
+FROM alpine
+EXPOSE 80
+CMD ["/app"]
+
+# Copy from first stage
+COPY --from=0 /app/main /app
+===
+
+There are currently discussions about improving the syntax that you can follow at https://github.com/docker/docker/pull/31257
+---
+
+Image
+
+With the new syntax for the Dockerfile in place, the build process is identical to previously.
+Task
+
+Create the desired Docker Image using the build command below.
+
+$ docker build -f Dockerfile.multi -t golang-app 
+===
+The result will be two images. One untagged that was used for the first stage and the second, smaller image, our target image.
+
+$ docker images
+
+If you receive the error, COPY --from=0 /build/out /app/ Unknown flag: from, it means you're running an older version of Docker without the multi-stage support. Step 1 of this scenario upgrades the current Docker version.
+
+===
+Test Image
+
+The image can be launched and deployed without any changes required.
+
+$ docker run -d -p 80:80 golang-app
+
+$ curl localhost

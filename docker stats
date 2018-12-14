@@ -1,0 +1,24 @@
+Step 1 - Single Container
+
+The environment has a container running with the name nginx. You can find the stats for the container by using:
+
+docker stats nginx
+
+This launches a terminal window which refreshes itself with live data from the container.
+
+To quit, use CTRL+C to stop the running progress.
+
+===
+Step 2 - Multiple Containers
+
+The built-in Docker allows you to provide multiple names/ids and display their stats within a single window.
+
+The environment now has three connected containers running. To view the stats for all these containers you can use pipes and xargs. A pipe passes the output from one command into the input of another while xargs allows you to provide this input as arguments to a command.
+
+By combining the two we can take the list of all our running containers provided by docker ps and use them as the argument for docker stats. This gives us an overview of the entire machine's containers.
+
+docker ps -q | xargs docker stats
+
+To quit, use CTRL+C to stop the running progress.
+
+====

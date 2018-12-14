@@ -1,0 +1,15 @@
+$ docker run -d --name redis-server redis
+$ docker run -d --name redis-syslog --log-driver=syslog redis-syslog
+==
+When the container is launched simply set the log-driver to none. No output will be logged.
+==
+$ docker run -d --name redis-none --log-driver=none redis
+==
+Which Config?
+
+The inspect command allows you to identify the logging configuration for a particular container. The command below will output the LogConfig section for each of the containers.
+==
+$ docker inspect --format '{{ .HostConfig.LogConfig }}' redis-server
+$ docker inspect --format '{{ .HostConfig.LogConfig }}' redis-syslog
+$ docker inspect --format '{{ .HostConfig.LogConfig }}' redis-none
+

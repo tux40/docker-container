@@ -1,0 +1,36 @@
+#############
+#In this scenario, we'll look at how you can optimise Dockerfile using the OnBuild instruction.
+
+#The environment has been configured with an example Node.js application however the approaches can be applied to any image. The machine name #Docker is running on is called docker. If you want to access any of the services, then use docker instead of localhost or 0.0.0.0.
+
+#Based on blog post by Ben Hall
+#################
+
+###
+Dockerfile :
+A text with instructions to build image
+Automation of Dockker image Creation
+
+--basic instruction
+FROM
+RUN
+CMD
+###
+
+$touch Dockerfile 
+FROM node:7
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+ONBUILD COPY package.json /usr/src/app/
+ONBUILD RUN npm install
+ONBUILD COPY . /usr/src/app
+CMD [ "npm", "start" ]
+
+$docker build -t my-nodejs-app .
+$docker run -d --name my-running-app -p 3000:3000 my-nodejs-app
+
+--testing container
+$curl http://docker:3000
+
+
+

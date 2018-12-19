@@ -1,0 +1,37 @@
+==
+In this scenario you'll learn how to use Overlay Networks as part of Swarm Mode. Overlay networks allow containers to communicate as if they're on the same host. Under the covers they use VxLan features of the Linux Kernel.
+
+Environment
+The environment has been configured with two Docker machines that can communicate with each over TCP.
+==
+Step 1 - Initialise Swarm Mode
+By default, Docker works as an isolated single-node. All containers are only deployed onto the engine. Swarm Mode turns it into a multi-host cluster-aware engine.
+
+Task: Initialise Swarm Mode
+To use the secrets functionality, Docker has to be in "Swarm Mode". This is enabled via 
+
+$ docker swarm init J
+==
+Join Swarm Mode
+Execute the command below on the second host to add it as a worker to the cluster.
+
+$ token=$(docker -H 172.17.0.64:2345 swarm join-token -q worker) && docker swarm join 172.17.0.64:2377 --token $token J
+
+==
+Step 2 - Create Network
+Overlay Networks are created using the Docker CLI, similar to creating a bridge network for connecting between hosts. When creating the network, a driver type of overlay is used. When new services are deployed via Swarm Mode, they can utilise this network allowing containers to communicate.
+
+Task
+To create the Overlay Network, use the CLI and define the driver. Networks can only be created via a Swarm Manager node. The network name would be app1-network.
+
+$ docker network create -d overlay app1-network J 
+==
+
+
+
+
+
+
+
+
+

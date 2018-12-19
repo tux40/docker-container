@@ -86,3 +86,4 @@ $ curl http://docker
 
 It is important that your application can take this into account and handle two different versions being live concurrently.
 ===
+

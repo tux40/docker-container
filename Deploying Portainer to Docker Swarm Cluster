@@ -1,0 +1,114 @@
+Portainer is a simple management solution for Docker. It consists of a web UI that allows you to easily manage your Docker containers, images, networks and volumes.
+
+In this scenario, you'll deploy Portainer and use the UI to manage a Docker Swarm cluster.
+
+==
+Step 1 - Deploy Swarm Cluster
+This scenario deploys Portainer to a Swarm cluster. A two-node cluster has been created for you. If you would like more information on how this was created, complete the Katacoda scenario on Getting Started With Swarm Mode.
+
+You can view the status of the Swarm cluster with the command 
+
+$ docker node ls
+
+===
+Step 2 - Deploy Portainer
+With the cluster configured, the next stage is to deploy Portainer. Portainer is deployed as a container running on a Docker Swarm cluster or a Docker host.
+
+Task: Deploy as Swarm Service
+To complete this scenario, deploy Portainer as a Docker Service. By deploying as a Docker Service, Swarm will ensure that the service is always running on a manager, even if the host goes down.
+
+The service exposes the port 9000 and stores the internal Portainer data in the directory /host/data. When Portainer starts, it connects using the docker.sock file to the Docker Swarm Manger.
+
+There is an added constraint that the container should only run on a manager node.
+
+$ docker service create \
+    --name portainer \
+    --publish 9000:9000 \
+    --constraint 'node.role == manager' \
+    --mount type=bind,src=/host/data,dst=/data \
+     --mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+    portainer/portainer \
+    -H unix:///var/run/docker.sock
+Deploy as Container
+An alternative way of running Portainer is directly on a host. In this case, the command exposes the Portainer dashboard on port 9000, persists data to the host and connects to the Docker host it's running on via the docker.sock file.
+
+$ docker run -d -p 9000:9000 --name=portainer \
+  -v "/var/run/docker.sock:/var/run/docker.sock" \
+  -v /host/data:/data \
+  portainer/portainer
+
+===
+Step 3 - Visit Portainer Dashboard
+With Portainer running, it's now possible to access the dashboard and manage the cluster via a UI.
+
+The dashboard is running on Port 9000 and can be accessed via this link
+
+The first screen asks you to create a password for the admin user.
+
+==
+Once configured, the second screen will ask you to log in to the dashboard using the password defined.
+The password will be required to login in future.
+===
+Step 4 - Deploy Template
+One of the many features of Portainer is it's available to deploy services based on pre-defined containers.
+Task - Deploy nginx
+In this case you will deploy the nginx template.
+
+1) Visit the App Templates tab to view the available templates.
+
+2) Select the nginx template
+
+3) Enter a friendly name for the container, for example nginx-web
+
+4) Select Show advanced options and bind port 80 to the host port 80.
+
+5) Create the container
+
+6) Visit the newly deployed container on port 80
+
+Task - Deploy nginx
+In this case you will deploy the nginx template.
+
+1) Visit the App Templates tab to view the available templates.
+
+2) Select the nginx template
+
+3) Enter a friendly name for the container, for example nginx-web
+
+4) Select Show advanced options and bind port 80 to the host port 80.
+
+5) Create the container
+
+6) Visit the newly deployed container on port 80
+
+===
+Task - Deploy nginx
+In this case you will deploy the nginx template.
+
+1) Visit the App Templates tab to view the available templates.
+
+2) Select the nginx template
+
+3) Enter a friendly name for the container, for example nginx-web
+
+4) Select Show advanced options and bind port 80 to the host port 80.
+
+5) Create the container
+
+6) Visit the newly deployed container on port 80
+===
+Step 5 - Manage Containers
+An instance of Nginx will be deployed. Using the dashboard, you will see the state and be able to control the cluster.
+
+Portainer has many other features. Explore the dashboard to see what's possible.
+===
+Summary
+This scenario described how to get started with Portainer and use it to manage a container host or Swarm cluster.
+
+Run Portainer on your Docker host using:
+
+docker run -d -p 9000:9000 --name=portainer \ -v "/var/run/docker.sock:/var/run/docker.sock" \ -v /host/data:/data \ portainer/portainer
+
+Learn more at http://portainer.io/
+===
+

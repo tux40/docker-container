@@ -12,4 +12,18 @@
 > add-repo \							
 >https://download.docker.com/linux/centos/docker-ce.repo							
 # yum makecache fast							
-# systemctl start docker							
+# systemctl start docker	
+
+== if error like this 
+Docker updated leads to the failed docker service: Dependency failed for Docker Application Container Engine
+== Follow this step to fix it
+Override the modprobe execution
+# mkdir -p /etc/systemd/system/containerd.service.d
+# cd /etc/systemd/system/containerd.service.d
+# vim override.conf
+[Service]
+ExecStartPre=
+# systemctl daemon-reload
+# systemctl start docker
+
+

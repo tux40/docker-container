@@ -1,0 +1,11 @@
+====
+
+In this scenario, you will learn how to use Docker to load balance network traffic to different containers. With the introduction of Swarm Mode and Services, containers can now be logically grouped by a friendly name and port.
+
+Requests to this name/port will be load balanced across all available containers in the cluster. This increases availability and the load distribution.
+
+This functionality is provided as part of Swarm's routing mesh. Internally it's using the Linux IPVS, an in-kernel Layer 4 multi-protocol load balancer.
+
+The environment has been configured with two Docker Hosts.
+
+====

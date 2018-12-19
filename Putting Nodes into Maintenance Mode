@@ -1,0 +1,74 @@
+In this scenario, you will learn how to put a Docker Swarm Mode worker node into maintenance mode. By putting a node into maintenance mode, all existing workloads will be restarted on other servers to ensure availability, and no new workloads will be started on the node.
+
+Maintenance mode allows you to perform operations such as security updates or rebooting machines without the loss of availability.
+
+===
+Step 1: Create Swarm Cluster
+By default, Docker works as an isolated single-node. All containers are only deployed onto the engine. Swarm Mode turns it into a multi-host cluster-aware engine.
+
+Task: Initialise Swarm Mode
+To use the secrets functionality, Docker has to be in "Swarm Mode". This is enabled via 
+$ 
+docker swarm init
+
+Join Swarm Mode
+Execute the command below on the second host to add it as a worker to the cluster.
+
+$ token=$(docker -H 172.17.0.222:2345 swarm join-token -q worker) && docker swarm join 172.17.0.222:2377 --token $token
+
+===
+Step 2: Deploy Services
+Start by deploying a HTTP server with two replicas across the two Swarm Mode nodes. The deployment will result in a container deployed onto each node.
+
+Task
+Create the deployment using the command below:
+
+$ docker service create --name lbapp1 --replicas 2 -p 80:80 katacoda/docker-http-server
+
+Watch the deployment status with 
+$ docker service ls 
+and 
+$ docker ps
+===
+Step 3: Turn on Maintenance Mode
+When maintenance is required, it's important to manage the process correctly to ensure reliability. The first action is to remove the node from the load balancer and let all active sessions complete. This will ensure that no requests are being sent to the host. Secondly, workloads on the system need to be redeployed to make sure that capacity is maintained.
+
+Docker Swarm will manage this for you when setting the availability of a node.
+
+Task
+Setting the availability requires known the IP of the Swarm Mode. This is done using 
+
+$ docker node ls
+
+The command below will store the ID of the worker node.
+
+$ worker=$(docker node ls | grep -v "Leader" | awk '{print $1}' | tail -n1); echo $worker
+
+Setting the availability is done by updating the node. 
+
+$ docker node update $worker --availability=drain
+
+===
+Step 4: Turn off Maintenance Mode
+Once the work has been completed, the node should be made available for future workloads. This is done by settings the availability to active.
+
+$ docker node update $worker --availability=active
+
+The availability has now changed back.
+
+$ docker node ls
+
+It's important to note that Docker won't reschedule existing workloads. Looking at the containers, you will see that they're still both running on a single host.
+
+$ docker ps
+
+Instead, Swarm will only schedule new workloads onto the newly available host. This can be tested by scaling the number of replicas required.
+
+$ docker service scale lbapp1=3
+
+The new container will be scheduled onto the second node.
+
+$ docker ps
+
+===
+

@@ -1,0 +1,70 @@
+In this scenario, you will learn how to use Docker Compose and Stacks to deploy services on a Docker Swarm Mode cluster. The new Stacks features were added as part of the Docker Compose version 3 (v3) improvements.
+
+Environment
+The environment has been configured with two Docker machines that can communicate with each over TCP.
+===
+Step 1 - Initialise Swarm Mode
+By default, Docker works as an isolated single-node. All containers are only deployed onto the engine. Swarm Mode turns it into a multi-host cluster-aware engine.
+
+Task: Initialise Swarm Mode
+To use the secrets functionality, Docker has to be in "Swarm Mode". This is enabled via 
+$ docker swarm init
+
+Join Swarm Mode
+Execute the command below on the second host to add it as a worker to the cluster.
+
+$ token=$(docker -H 172.17.0.23:2345 swarm join-token -q worker) && docker swarm join 172.17.0.23:2377 --token $token
+
+==
+Step 2 - Create Docker Compose file
+Using Docker Compose v3, it's possible to define a Docker deployment along with production details. This provides a central location for managing your application deployments that can be deployed onto a Swarm Mode cluster.
+
+A Docker Compose file has been created that defines deploying a Redis server with a web front end.
+
+View the file using 
+
+$ cat docker-compose.yml
+
+The file has been extended to utilize Swarm deployment options.
+
+The first configuration option uses depends_on. This states that Redis must be deployed before the web and allows us to control the order of services being started.
+
+The next configuration options define how the application should be deployed using the new deploy options.
+
+Firstly, mode: replicated and replicas: 2 determine how many replicas of the service should be started.
+
+Secondly, resources are define. The limits are hard limits that the application cannot exceed, the reservations is a guide to Docker Swarm to indicate the resources the applications requires.
+
+Third, restart_policy indicates what should happen if the process crashes.
+
+Fourth, update_config defines how updates should be applied and rolled out.
+
+Finally, placement allows us to add constraints to determine where the service should be deployed.
+
+More details can be found at https://docs.docker.com/compose/compose-file/#deploy
+
+
+===
+Step 3 - Deploy Services
+The Docker Compose file is referred to as a Docker Compose Stack. Stacks can be deployed to Swarm using the CLI.
+
+Task
+The docker stack command is used to deploy a Docker Compose Stack via Swarm. In this case, it will prefix the services with myapp.
+
+$ docker stack deploy --compose-file docker-compose.yml myapp
+
+Once deployed it's possible to use the CLI to inspect the state.
+
+The command docker stack ls lists all stacks deployed.
+
+Details of the internal services can be discovered via 
+$ docker stack services myapp
+
+Notice that the command indicates the Desired / Running state for the service. If the service cannot be deployed then this will be different.
+
+The details of each service container can be identified using 
+$ docker stack ps myapp
+
+All of this information can still be discovered using 
+$ docker ps
+==

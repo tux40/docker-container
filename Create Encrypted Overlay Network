@@ -1,0 +1,154 @@
+Following on from the scenario on creating overlay networks, this scenario explains how to create a encrypted overlay network. This allows you to encrypt network traffic between containers.
+===
+Step 1 - Initialise Swarm Mode
+By default, Docker works as an isolated single-node. All containers are only deployed onto the engine. Swarm Mode turns it into a multi-host cluster-aware engine.
+
+Task: Initialise Swarm Mode
+To use the secrets functionality, Docker has to be in "Swarm Mode". This is enabled via 
+
+$ docker swarm init
+
+Join Swarm Mode
+Execute the command below on the second host to add it as a worker to the cluster.
+
+$ token=$(docker -H 172.17.0.46:2345 swarm join-token -q worker) && docker swarm join 172.17.0.46:2377 --token $token
+
+===
+
+Step 2 - Create Unencrypted Overlay Network
+The commands below will create an unencrypted overlay network with two services deployed.
+
+Task
+Run the command. This will be used to demonstrate sniffing traffic on an unencrypted network. This was discussed in detail in our Creating a Docker Overlay Network scenario.
+
+$ docker network create -d overlay app1-network
+docker service create --name redis --network app1-network redis:alpine
+docker service create \
+  --network app1-network -p 80:3000 \
+  --replicas 1 --name app1-web \
+  katacoda/redis-node-docker-example
+  
+  ===
+  Step 3 - Monitor Traffic
+With the services deployed, use TCPDump to view the traffic between different hosts.
+
+Task: Install TCPDump
+This will install TCPDump on the Docker Host and start collecting traffic sent over the overlay network.
+
+$ ssh  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@host01
+yes | pacman -Sy tcpdump openssl
+tcpdump -s 1500 -A -i ens3 port 4789
+
+Create Traffic
+Wait until the services have been deployed 
+$ docker service ls
+
+Once deployed, it's possible to generate traffic by sending HTTP requests to the web app. This in turn will create network requests to Redis.
+
+$ curl docker
+
+When viewing the TCPDump stream, it's possible to identify the underlying Redis API calls to set and get data. For example:
+
+RESP "hgetall" "ip"
+
+RESP "::ffff:10.255.0.3" "8"
+
+If this was sensitive information then it could open a potential security risk if an attacker could intercept network traffic.
+
+Clean Up
+Run the command to remove the services and network. In the next step we'll redeploy them using a secure network.
+
+$ docker service rm redis app1-web && docker network rm app1-network
+
+===
+Step 4 - Create Encrypted Overlay Network
+The additional option of --opt encrypted enables the packets to be encrypted before being sent over the overlay network.
+
+Task
+The option is for encryption is defined when you create the network. The command now looks like this:
+
+$ docker network create -d overlay --opt encrypted app1-network
+
+The encryption is transparent to the applications allowing them to use the network in the standard way.
+
+Deploy the Redis service and Web UI with the command below:
+
+$ docker service create --name redis --network app1-network redis:alpine
+docker service create \
+  --network app1-network -p 80:3000 \
+  --replicas 1 --name app1-web \
+  katacoda/redis-node-docker-example
+Create Traffic
+Now when traffic is generated you will not be able to intercept and monitor the traffic going to and from Redis as it is now encrypted.
+
+$ curl docker
+
+You will however still see the HTTP web response back to the client. This is because the application does not use HTTPS for communicate between the client and server. Adding HTTPS would create a complete end-to-end encryption solution for your application
+===
+
+Summary 
+In this scenario you learned how to create an encrypted overlay network. You also looked into how to use TCP Dump to intercept and monitor network traffic over an overlay network.
+
+====
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -37,4 +37,63 @@ $ docker run -d -p 80:80 --name srv http
 In the next steps we'll cause the HTTP Server to start throwing errors.
 
 ===
+Step 2 - Crash Service
+With the HTTP server running as a container, the Docker Daemon will automatically check the healthcheck based on the options. It will return the status when you list all the running containers, for example 
+$ docker ps
+
+Set Unhealthy
+The HTTP server has a special endpoint which will cause it to start reporting errors.
+
+Make a http request to 
+
+$ curl http://docker/unhealthy
+
+The service will now go into error mode. In the next step, we'll look at how Docker handles this.
+
+===
+Step 3 - Verify Status
+As the HTTP server is in an error state, the healthcheck should fail. Docker will report this as part of the metadata.
+
+Detecting Errors
+Docker will report the health status in various different places. To get the raw text stream, useful during automation, use Docker Inspect to pull out the Health Status field.
+
+$ docker inspect --format "{{json .State.Health.Status }}" srv
+
+The Health state stores a log of all the failures and any output from the command. This is useful for debugging why a container is considered unhealthy.
+
+$ docker inspect --format "{{json .State.Health }}" srv
+
+The status of all the containers can be viewed using 
+$ docker ps
+===
+Step 4 - Fix Service
+Use an extra HTTP endpoint to make the service healthy again. 
+$ curl http://docker/healthy
+
+View Healthy Status
+Once the service is healthy again, Docker will update the status.
+
+$ docker ps
+
+$ docker inspect --format "{{json .State.Health.Status }}" srv
+===
+Step 5 - Healthchecks with Swarm
+Docker Swarm can use these health checks to understand when services need to be restarted/recreated.
+
+Initialise a Swarm cluster and deploy the newly created image as a service with two replicas.
+
+$ docker rm -f $(docker ps -qa); 
+$ docker swarm init
+$ docker service create --name http --replicas 2 -p 80:80 http
+You should see two containers responding curl docker
+
+Randomly cause one of the nodes to be unhealthy with curl docker/unhealthy
+
+You should only see one node processing requests as Swarm has automatically removed it from the load balancer: curl docker
+
+Swarm will now restart the unhealthy service automatically. 
+$ docker ps
+
+After Swarm has restarted the service you should see two nodes again: 
+$ curl docker
 ===
